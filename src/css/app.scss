@@ -1,0 +1,10 @@
+// app global css in SCSS form
+@font-face {
+    font-family: Sanlulus;
+    src: url(./fonts/Sanlulus.ttf);
+  }
+  
+  // declare a class which applies it
+  .my-font {
+    font-family: 'Sanlulus';
+  }
