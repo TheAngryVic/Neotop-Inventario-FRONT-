@@ -5,7 +5,7 @@
     </div>
     <div class="row md-9 justify-center">
       <Suspense>
-        <tablaInventario />
+        <tablaInventario :cols="cols" :rows="arrayData" tittle="Productos" />
       </Suspense>
     </div>
     <!-- <tabla-inventario :col="col" :row="row"/>    -->
@@ -14,8 +14,34 @@
 
 <script>
 import { useStore } from "vuex";
-import tablaInventario from "../components/tablaInventario.vue";
-import { computed } from "vue";
+import tablaInventario from "../components/categoria/tablaCategorias.vue";
+import { computed, ref } from "vue";
+import { api } from "boot/axios";
+
+
+const cols = [
+  {
+    name:'uid',
+    label:'uid',
+    field:'uid',
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name:'modelo',
+    label:'Modelo',
+    field:row => row.modelo.nombre,
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name:'bodega',
+    label:'Bodega',
+    field:row => row.bodega.nombre,
+    align: 'left',
+    sortable: true,
+  },
+]
 
 export default {
   name: "PageIndex",
@@ -24,12 +50,30 @@ export default {
   },
   setup(props) {
     const store = useStore();
-
     let userDb = computed(() => store.state.usuarioDB)
 
-    console.log(userDb)
+    const arrayData = ref([])
+
+    const axiosData = async()=>{
+      try {
+        const res = await api.get("/productos/")
+        .then(response=>{
+          arrayData.value = response.data.productos
+        }).catch(e=>{
+          console.log(e)
+        })        
+
+      } catch (error) {
+        console.log(error)        
+      }
+    }
+
+    axiosData()
+
     return {
-      userDb
+      userDb,
+      cols,
+      arrayData
     }
   },
 };

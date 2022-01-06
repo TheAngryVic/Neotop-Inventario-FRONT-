@@ -1,5 +1,6 @@
 import { store } from "quasar/wrappers";
 import { createStore } from "vuex";
+import createPersistedState from "vuex-persistedstate";
 import decode from "jwt-decode";
 
 import router from "../router/index";
@@ -15,10 +16,13 @@ import router from "../router/index";
 
 export default store(function (/* { ssrContext } */) {
   const Store = createStore({
+    plugins:[createPersistedState({
+      storage: window.sessionStorage,
+    })],
     state: {
       token: "",
       usuarioDB: null,
-      productos: null
+      productos: null,
     },
     mutations: {
       obtenerUsuario(state, payload) {
@@ -27,38 +31,44 @@ export default store(function (/* { ssrContext } */) {
           state.usuarioDB = null;
         } else {
           state.usuarioDB = decode(payload);
-          console.log(state.usuarioDB)
-          router.push({name: 'home'})
-
+          router.push({ name: "home" });
         }
       },
-      obtenerProductos(state, payload){
+      obtenerProductos(state, payload) {
         state.payload = payload;
         if (payload === "") {
           state.productos = null;
         } else {
           state.productos = payload;
         }
-      }
+      },
     },
     actions: {
       guardarUsuario({ commit }, payload) {
         localStorage.setItem("token", payload);
         commit("obtenerUsuario", payload);
       },
+      cerrarSesion({ commit }) {
+        commit("obtenerUsuario", "");
+        localStorage.removeItem("token");
+        router.push({name:'login'})
+      },
       guardarProductos({ commit }, payload) {
         commit("obtenerProductos", payload);
       },
     },
     getters: {
-      usuarioLogueado(state){
-        return !!state.usuarioDB
-      }
+      usuarioLogueado(state) {
+        return !!state.usuarioDB;
+      },    
     },
 
     modules: {
       // example
     },
+
+    
+    
 
     // enable strict mode (adds overhead!)
     // for dev mode and --debug builds only

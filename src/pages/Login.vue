@@ -29,7 +29,7 @@
                 unelevated
                 color="light-green-7"
                 size="lg"
-                class="full-width"
+                class="full-width q-mt-lg"
                 label="Login"
                 
               />

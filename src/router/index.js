@@ -1,4 +1,9 @@
 import { route } from "quasar/wrappers";
+import  Store  from '../store/index.js'
+
+import { Dialog } from 'quasar'
+
+
 import {
   createRouter,
   createMemoryHistory,
@@ -6,6 +11,7 @@ import {
   createWebHashHistory,
 } from "vue-router";
 import routes from "./routes";
+
 
 /*
  * If not building with SSR mode, you can
@@ -31,18 +37,48 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  //Rederigir al login si no estas logueado y se quiere entrar a una ruta protegida
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
+    const autenticado = localStorage.getItem("token");
+    const session = JSON.parse(sessionStorage.getItem("vuex"))
 
-  const publicPages = ["/login"];
-  const authRequired = !publicPages.includes(to.path);
+    if (to.matched.some(record => record.meta.bodegaOnly)) {
+      
+      let rol
 
-  const autenticado = localStorage.getItem("token");
+      session.usuarioDB ? rol=session.usuarioDB.rol : rol=null
 
-  if (authRequired && !autenticado) {
-    return next("/login");
+      console.log("ROL", rol);
+
+      if(rol !== "BODEGA_ROLE") {
+
+         Dialog.create({
+          title: 'Alerta de permisos',
+          message: '¡No tienes los permismos suficientes para ingresar! \n Comuniquese con el Administrador'
+        });
+        next({
+          path: '/login',
+          query: { redirect: to.fullPath }
+        })
+      }
+      else {
+        next()
+      }
+
+    }
+    else if(!autenticado) {
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    }
+    else {
+      next()
+    }
+  } else {
+    next() // make sure to always call next()!
   }
-
-  next();
-});
+})
 
 export default router

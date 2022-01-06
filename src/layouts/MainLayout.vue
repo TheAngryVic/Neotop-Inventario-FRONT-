@@ -1,8 +1,8 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <q-header reveal bordered class="bg-primary text-white">
+    <q-header reveal bordered  class="bg-primary text-white">
       <q-toolbar>
-        <q-btn dense flat round icon="las la-bars" @click="toggleLeftDrawer" />
+        <q-btn dense flat round icon="las la-bars"  @click="toggleLeftDrawer" />
 
         <q-toolbar-title>
           <img class="logo" src="../assets/logo.png" />
@@ -10,11 +10,20 @@
         <q-btn round color="secondary" icon="las la-user">
           <q-menu fit>
             <q-list style="min-width: 100px">         
-              <q-item clickable v-for="(l, index) in authLinks" :key="index" @click="navigateTo(l.link)">
+              <q-item v-if="!logueado" clickable  @click="navigateTo('login')">
                 <q-item-section>
                   <div class="row justify-center">
-                    <q-icon :name="l.icon" size="xs"> </q-icon> {{l.title}}
-                  </div></q-item-section
+                    <q-icon name="las la-sign-in-alt" size="xs"> </q-icon> Ingresar
+                  </div>
+                </q-item-section
+                >
+              </q-item>
+              <q-item clickable v-if="logueado" @click.prevent="cerrarSesion()">
+                <q-item-section>
+                  <div class="row justify-center">
+                    <q-icon name="las la-door-closed" size="xs"> </q-icon> Cerrar Sesión
+                  </div>
+                </q-item-section
                 >
               </q-item>
             </q-list>
@@ -48,10 +57,11 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref,computed } from "vue";
 import { useRouter } from "vue-router";
 
 import EssentialLink from "../components/EssentialLink";
+import { useStore } from 'vuex';
 
 const linksList = [
   {
@@ -70,13 +80,13 @@ const linksList = [
     title: "Mantenedor de modelos",
     caption: "Crear, modificar, eliminar modelos",
     icon: "las la-wrench",
-    link: "home",
+    link: "modelos",
   },
   {
     title: "Mantenedor de bodegas",
     caption: "Crear, modificar, eliminar bodegas",
     icon: "las la-wrench",
-    link: "home",
+    link: "bodegas",
   },
   {
     title: "Mantenedor de categorias",
@@ -92,30 +102,23 @@ const linksList = [
   },
 ];
 
-const authLinks = [
-  {
-    title: "Ingresar",
-    icon: "las la-sign-in-alt",
-    link: "login",
-  },
-  {
-    title: "Cerrar Sesion",
-    icon: "las la-door-closed",
-    link: "home",
-  },
-]
 
 export default {
   components: {
     EssentialLink,
   },
   setup() {
-    const leftDrawerOpen = ref(true);
+    const leftDrawerOpen = ref(false);
     const router = useRouter();
 
+    const store = useStore();
+
+    
+
     return {
+      logueado: computed(()=>store.getters.usuarioLogueado),
+      cerrarSesion: ()=> store.dispatch('cerrarSesion'),
       leftDrawerOpen,
-      authLinks,
       linksList,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
