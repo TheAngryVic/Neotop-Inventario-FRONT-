@@ -1,6 +1,7 @@
 # QuasarApp (front-inventario)
 
-A Quasar Framework app
+Sistema de inventario con Quasar y algunas librerias para ayudarme.
+
 
 ## Install the dependencies
 ```bash
