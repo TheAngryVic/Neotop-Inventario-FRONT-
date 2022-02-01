@@ -71,6 +71,12 @@ const linksList = [
     link: "home",
   },
   {
+    title: "Movimientos",
+    caption: "Registro de productos",
+    icon: "las la-retweet",
+    link: "movimientos",
+  },
+  {
     title: "Mantenedor de productos",
     caption: "Crear, modificar, eliminar productos ",
     icon: "las la-wrench",

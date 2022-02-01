@@ -17,6 +17,8 @@ const routes = [
        meta: { requiresAuth: true, bodegaOnly: true } },
       { path: 'stecnico', name:"stecnico" ,component: () => import('pages/Servicio-tecnico.vue'),
        meta: { requiresAuth: true, bodegaOnly: true } },
+      { path: 'movimientos', name:"movimientos" ,component: () => import('pages/Movimientos.vue'),
+       meta: { requiresAuth: true} },
     ]
   },
 
