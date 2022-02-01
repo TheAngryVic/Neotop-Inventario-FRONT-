@@ -1,11 +1,11 @@
 //TODO: SORT y filtros
 <template>
   <q-table
-    :columns="cols"
+      :columns="cols"
     :filter="filter"
     :loading="loading"
     :rows-per-page-options="[5, 8, 10]"
-    :rows="modelos"
+    :rows="productos"
     :title="tittle"
     @request="onRequest"
     card-class="bg-red-1 text-grey-9"
@@ -19,8 +19,7 @@
     <template v-slot:top-right>
       <q-input
         v-model="filter"
-        rounded
-        outlined
+        rounded outlined
         debounce="300"
         placeholder="buscador"
         bg-color="white"
@@ -37,7 +36,7 @@
           round
           flat
           color="orange-13"
-          @click="editarModelo(props)"
+          @click="editarProducto(props)"
           icon="las la-edit"
         ></q-btn>
         <q-btn
@@ -45,7 +44,7 @@
           round
           flat
           color="red-14"
-          @click="deleteModelo(props)"
+          @click="deleteProducto(props)"
           icon="las la-trash"
         ></q-btn>
       </q-td>
@@ -61,39 +60,34 @@
       </div>
     </template>
   </q-table>
-  <q-dialog v-model="isVisibleAgregar"
-    ><agregarModelo :objeto="objeto" @changeToggle="changeToggle"
-  /></q-dialog>
-  <q-dialog v-model="isEditVisible"
-    ><editarModelo :objeto="objeto" @changeToggle="changeToggle"
-  /></q-dialog>
-  <q-dialog v-model="isVisibleMasivo">
-    <masivo @changeToggle="changeToggle" />
+  <q-dialog v-model="isVisibleAgregar"><agregarProducto :objeto="objeto" @changeToggle="changeToggle"/></q-dialog>
+  <q-dialog v-model="isEditVisible"><editarProducto :objeto="objeto" @changeToggle="changeToggle"/></q-dialog>
+ <q-dialog v-model="isVisibleMasivo">
+    <masivo  @changeToggle="changeToggle" />
   </q-dialog>
 </template>
 
 <script>
-import { ref, inject, provide } from "vue";
+import { ref, inject,provide } from "vue";
 
 import { useQuasar } from "quasar";
 
-import useModelo from "../../hooks/useModelos";
+import useProductos from "../../hooks/useProductos";
 import masivo from "../dialogMasivo.vue"; // componente
+import  agregarProducto  from "./dialogFormProductoPOST.vue";
+import editarProducto from "./dialogFormProductoPUT.vue";
 
-import agregarModelo from "../modelos/dialogFormModeloPOST";
-import editarModelo from "../modelos/dialogFormModeloPUT.vue";
 import { api } from "src/boot/axios";
 
 export default {
-  components: { agregarModelo, editarModelo, masivo },
+  components: { agregarProducto,editarProducto,masivo  },
   props: {
     tittle: String,
     cols: Array,
   },
   setup(props) {
-    const modelos = inject("modelosArray"); //Array con las modelos
+    const productos = inject("productosArray"); //Array con las productos
     const isVisibleAgregar = inject("isVisibleAgregar"); //toggle de formulario crear
-    //Se injecta el toogle de la visibilidad de agregar
     const isVisibleMasivo = inject("isVisibleMasivo");
     const q = useQuasar(); //Para las alertas de quasar
     const isEditVisible = ref(false); //toggle form Edit
@@ -110,8 +104,9 @@ export default {
       rowsPerPage: 5,
       rowsNumber: 6,
     });
-    const paginationGet = async (page = 0, size = 5, filter, sortBy, desc) => {
-      try {
+    const paginationGet = async(page = 0, size = 5, filter, sortBy, desc) => {
+      
+       try {
         const options = {
           headers: {
             "x-token": localStorage.token,
@@ -138,20 +133,23 @@ export default {
           params: {
             currentPage: page,
             pageSize: size,
-            sorter: sortBy,
-            desc,
+            sorter:sortBy,
+            desc
           },
         };
 
         let response;
 
-        if (filter !== "") {
-          response = await api.get("/modelos", filtrado);
+        if (filter!=="") {
+          
+          response = await api.get("/productos", filtrado)
         } else {
           if (sortBy) {
-            response = await api.get("/modelos", ordenado);
+            
+            response = await api.get("/productos", ordenado)
           } else {
-            response = await api.get("/modelos", options);
+            
+            response = await api.get("/productos", options);
           }
         }
 
@@ -159,7 +157,7 @@ export default {
 
         const rows = response.data.rows;
 
-        modelos.value.splice(0, count, ...rows);
+        productos.value.splice(0, count, ...rows);
 
         pagination.value.page = currentPage;
         pagination.value.rowsPerPage = pageSize;
@@ -173,20 +171,18 @@ export default {
       } catch (error) {
         console.log(error);
       }
+
       // api
-      //   .get("/modelos", options)
+      //   .get("/productos", options)
       //   .then((response) => {
       //     const { currentPage, pageSize, count } = response.data.meta;
-
-      //     console.log(response.data.meta);
 
       //     let rows = response.data.rows;
       //     pagination.value.page = currentPage;
       //     pagination.value.rowsPerPage = pageSize;
       //     pagination.value.rowsNumber = count;
 
-      //     modelos.value.splice(0, count, ...rows);
-      //     console.log(modelos.value);
+      //     productos.value.splice(0, count, ...rows);
       //   })
       //   .finally(() => {
       //     loading.value = false;
@@ -201,27 +197,29 @@ export default {
         props.pagination.rowsPerPage,
         upperFilter,
         props.pagination.sortBy,
-        props.pagination.descending
+        props.pagination.descending,
       );
     }
 
-    const { axiosDelete } = useModelo(props.objeto);
+    const { axiosDelete } = useProductos(props.objeto);
 
-    //Carga masiva
+     //Carga masiva
     //URL para carga masiva
-    const url = "modelos/masivo";
+    const url = 'productos/masivo'
     provide("url", url);
     //campos para carga masiva
-    const fields = {
-      nombre: { required: true, label: "Nombre" },
-      stock_minimo: { required: true, label: "Stock minimo" },
-      categoria: { required: true, label: "Id Categoria" },
-    };
+    const fields= {
+      nSerie: { required: true, label: "nSerie" },
+      ModeloId: { required: true, label: "ModeloId" },
+      BodegaId: { required: true, label: "BodegaId" },
+      }
     provide("fields", fields);
+    const nserie= true
+    provide("nserie", nserie);
 
     return {
       axiosDelete,
-      modelos,
+      productos,
       filter,
       isEditVisible,
       isVisibleAgregar,
@@ -233,19 +231,21 @@ export default {
       changeToggle: (status) => {
         isEditVisible.value = status;
       },
-      editarModelo: (prop) => {
+      editarProducto: (prop) => {
         isEditVisible.value = !isEditVisible.value;
         objeto.value = prop.row;
       },
-      deleteModelo: (prop) => {
+      deleteProducto: (prop) => {
         objeto.value = prop.row;
         q.dialog({
           title: `Advertencia`,
-          message: `Está seguro de querer eliminar ${objeto.value.nombre}`,
+          message: `Está seguro de querer eliminar ${objeto.value.Modelo.nombre} \n N°Serie ${objeto.value.nSerie}`,
           cancel: true,
         }).onOk(() => {
           axiosDelete(objeto.value.id);
-          modelos.value = modelos.value.filter((c) => c.id !== objeto.value.id);
+          productos.value = productos.value.filter(
+            (c) => c.id !== objeto.value.id
+          );
         });
       },
     };

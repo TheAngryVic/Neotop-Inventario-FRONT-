@@ -1,10 +1,10 @@
 <template>
   <q-page class="q-p2">
     <div class="row justify-center">
-      <h3>Modelos</h3>
+      <h3>Productos</h3>
     </div>
     <div class="row xs-12 md-9 justify-center">
-      <tabla :cols="cols" tittle="Listado de modelos" />
+      <tabla :cols="cols" tittle="Listado de productos (Mantenedor)" />
     </div>
     <div class="row justify-center q-mt-md">
       <q-btn
@@ -25,37 +25,43 @@
 </template>
 
 <script>
-import { ref, provide, watchEffect } from "vue";
+import { ref, provide } from "vue";
 import { api } from "src/boot/axios";
-import tabla from "../components/modelos/tablaModelos.vue";
+import tabla from "../components/productos/tablaProductos.vue";
 
 const cols = [
   {
     name: "uid",
     label: "uid",
     field: "id",
-    align: "right",
+    align: "left",
   },
   {
-    name: "nombre",
-    label: "Nombre modelo",
-    field: "nombre",
+    name: "Modelo",
+    label: "Modelo",
+    field: (row) => row.Modelo.nombre,
     align: "left",
     sortable: true,
   },
   {
-    name: "CategoriumId",
-    label: "Categoria",
-    field: (row) => row.Categorium.nombre,
+    name: "nSerie",
+    label: "N° Serie",
+    field: "nSerie",
     align: "left",
     sortable: true,
   },
   {
-    name: "stock_minimo",
-    label: "Stock mínimo",
-    field: "stock_minimo",
-    align: "right",
+    name: "Bodega",
+    label: "Bodega",
+    field: (row) => row.Bodega.nombre,
+    align: "left",
     sortable: true,
+  },
+  {
+    name: "usuario",
+    label: "Creador",
+    field: (row) => row.Usuario.nombre,
+    align: "left",
   },
   { name: "actions", label: "Actions", field: "", align: "right" },
 ];
@@ -65,15 +71,15 @@ export default {
     tabla,
   },
   data() {
-     const isVisibleAgregar = ref(false);
+    const isVisibleAgregar = ref(false);
     const isVisibleMasivo = ref(false);
-  
 
     provide("isVisibleAgregar", isVisibleAgregar);
     provide("isVisibleMasivo", isVisibleMasivo);
 
-    const modelosArray = ref([]);
-    const comboArray = [];
+    const productosArray = ref([]);
+    const bodegaArray = [];
+    const modeloArray = [];
 
     const axiosGet = async (currentPage = 0) => {
       try {
@@ -87,10 +93,10 @@ export default {
         };
 
         const res = await api
-          .get("/modelos", options)
+          .get("/productos", options)
           .then((r) => {
             const { meta, rows } = r.data;
-            modelosArray.value = rows;
+            productosArray.value = rows;
           })
           .catch((e) => console.log(e.response));
       } catch (error) {
@@ -99,7 +105,7 @@ export default {
     };
     axiosGet();
 
-    const getCombo = async () => {
+    const getBodegas = async () => {
       try {
         const options = {
           headers: {
@@ -108,11 +114,11 @@ export default {
         };
 
         await api
-          .get("/categorias/combo", options)
+          .get("/bodegas/combo", options)
           .then((r) => {
             const combo = r.data;
             combo.forEach((element) => {
-              comboArray.push(element);
+              bodegaArray.push(element);
             });
           })
           .catch((e) => console.log(e.response));
@@ -120,10 +126,34 @@ export default {
         console.log("Error en get", error);
       }
     };
-    getCombo();
+    getBodegas();
 
-    provide("modelosArray", modelosArray);
-    provide("comboArray", comboArray);
+    const getModelos = async () => {
+      try {
+        const options = {
+          headers: {
+            "x-token": localStorage.token,
+          },
+        };
+
+        await api
+          .get("/modelos/combo", options)
+          .then((r) => {
+            const combo = r.data;
+            combo.forEach((element) => {
+              modeloArray.push(element);
+            });
+          })
+          .catch((e) => console.log(e.response));
+      } catch (error) {
+        console.log("Error en get", error);
+      }
+    };
+    getModelos();
+
+    provide("productosArray", productosArray);
+    provide("modeloArray", modeloArray);
+    provide("bodegaArray", bodegaArray);
 
     const toggleAgregar = () => {
       isVisibleAgregar.value = !isVisibleAgregar.value;
@@ -133,11 +163,10 @@ export default {
     };
     return {
       cols,
-      modelosArray,
+      productosArray,
       isVisibleAgregar,
       toggleAgregar,
       toggleMasivo,
-      comboArray,
     };
   },
 };

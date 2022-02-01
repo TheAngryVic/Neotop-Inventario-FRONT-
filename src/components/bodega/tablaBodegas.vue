@@ -1,26 +1,29 @@
 //TODO: SORT y filtros
 <template>
   <q-table
-    v-model:pagination="pagination"
-    @request="onRequest"
-    class="q-mt-xl"
-    :loading="loading"
-    :title="tittle"
-    :rows="bodegas"
     :columns="cols"
-    rows-per-page-label="Filas por página"
-    :rows-per-page-options="[5, 8, 0]"
-    row-key="uid"
-    color="primary"
+    :filter="filter"
+    :loading="loading"
+    :rows-per-page-options="[5, 8, 10]"
+    :rows="bodegas"
+    :title="tittle"
+    @request="onRequest"
     card-class="bg-red-1 text-grey-9"
+    class="q-mt-xl"
+    color="primary"
+    row-key="id"
+    rows-per-page-label="Filas por página"
+    v-model:pagination="pagination"
+    binary-state-sort
   >
     <template v-slot:top-right>
       <q-input
-        :v-model="filter"
-        rounded outlined
+        v-model="filter"
+        rounded
+        outlined
         debounce="300"
         placeholder="buscador"
-        bg-color="red-2"
+        bg-color="white"
       >
         <template v-slot:append>
           <q-icon name="las la-search" />
@@ -53,29 +56,35 @@
         <span> Lamentablemente... {{ message }} </span>
         <q-icon
           size="2em"
-          :name="filter ? 'filter_b_and_w' : 'las la-exclamation-triangle'"
+          :name="filter ? 'las la-frown' : 'las la-exclamation-triangle'"
         />
       </div>
     </template>
   </q-table>
-  <q-dialog v-model="isVisibleAgregar"><agregarBodega :objeto="objeto" @changeToggle="changeToggle"/></q-dialog>
-  <q-dialog v-model="isEditVisible"><editarBodega :objeto="objeto" @changeToggle="changeToggle"/></q-dialog>
-
+  <q-dialog v-model="isVisibleAgregar"
+    ><agregarBodega :objeto="objeto" @changeToggle="changeToggle"
+  /></q-dialog>
+  <q-dialog v-model="isEditVisible"
+    ><editarBodega :objeto="objeto" @changeToggle="changeToggle"
+  /></q-dialog>
+  <q-dialog v-model="isVisibleMasivo">
+    <masivo @changeToggle="changeToggle" />
+  </q-dialog>
 </template>
 
 <script>
-import { ref, inject } from "vue";
+import { ref, inject,provide } from "vue";
 
 import { useQuasar } from "quasar";
 
 import useBodega from "../../hooks/useBodega";
-
+import masivo from "../dialogMasivo.vue"; // componente
 import agregarBodega from "../bodega/dialogFormBodegaPOST";
 import editarBodega from "../bodega/dialogFormBodegaPUT";
 import { api } from "src/boot/axios";
 
 export default {
-  components: { agregarBodega,editarBodega },
+  components: { agregarBodega, editarBodega, masivo },
   props: {
     tittle: String,
     cols: Array,
@@ -97,45 +106,98 @@ export default {
       rowsPerPage: 5,
       rowsNumber: 6,
     });
-    const paginationGet = (page = 0, size = 8) => {
+    const paginationGet = async (page = 0, size = 5, filter, sortBy, desc) => {
       const options = {
         headers: {
           "x-token": localStorage.token,
         },
         params: {
-          pageSize: size,
           currentPage: page,
+          pageSize: size,
         },
       };
-      api
-        .get("/bodegas", options)
-        .then((response) => {
-          const { currentPage, pageSize, count } = response.data.meta;
+      const filtrado = {
+        headers: {
+          "x-token": localStorage.token,
+        },
+        params: {
+          currentPage: page,
+          pageSize: size,
+          filter,
+        },
+      };
+      const ordenado = {
+        headers: {
+          "x-token": localStorage.token,
+        },
+        params: {
+          currentPage: page,
+          pageSize: size,
+          sorter: sortBy,
+          desc,
+        },
+      };
 
-          let rows = response.data.rows;
-          pagination.value.page = currentPage;
-          pagination.value.rowsPerPage = pageSize;
-          pagination.value.rowsNumber = count;
+      let response;
 
-          bodegas.value.splice(0, count, ...rows);
-        })
-        .finally(() => {
-          loading.value = false;
-        });
+      if (filter !== "") {
+        response = await api.get("/bodegas", filtrado);
+      } else {
+        if (sortBy) {
+          response = await api.get("/bodegas", ordenado);
+        } else {
+          response = await api.get("/bodegas", options);
+        }
+      }
+
+      const { currentPage, pageSize, count } = response.data.meta;
+
+      const rows = response.data.rows;
+
+      bodegas.value.splice(0, count, ...rows);
+
+      pagination.value.page = currentPage;
+      pagination.value.rowsPerPage = pageSize;
+      pagination.value.rowsNumber = count;
+      pagination.value.sortBy = sortBy;
+      pagination.value.descending = desc;
+
+      setInterval(() => {
+        loading.value = false;
+      }, 1000);
     };
 
     function onRequest(props) {
       loading.value = true;
-      paginationGet(props.pagination.page, props.pagination.rowsPerPage);
+      let upperFilter = props.filter.toUpperCase();
+      paginationGet(
+        props.pagination.page,
+        props.pagination.rowsPerPage,
+        upperFilter,
+        props.pagination.sortBy,
+        props.pagination.descending
+      );
     }
 
     const { axiosDelete } = useBodega(props.objeto);
+
+    //MAsivo
+    const isVisibleMasivo = inject("isVisibleMasivo");
+    const url = "bodegas/masivo";
+    provide("url", url);
+    //campos para carga masiva
+    const fields = {
+      nombre: { required: true, label: "Nombre" },
+      local: { required: true, label: "Ubicación" },
+    };
+    provide("fields", fields);
 
     return {
       axiosDelete,
       bodegas,
       filter,
       isEditVisible,
+      isVisibleMasivo,
       isVisibleAgregar,
       loading,
       objeto,
@@ -155,10 +217,8 @@ export default {
           message: `Está seguro de querer eliminar ${objeto.value.nombre}`,
           cancel: true,
         }).onOk(() => {
-          axiosDelete(objeto.value.uid);
-          bodegas.value = bodegas.value.filter(
-            (c) => c.uid !== objeto.value.uid
-          );
+          axiosDelete(objeto.value.id);
+          bodegas.value = bodegas.value.filter((c) => c.id !== objeto.value.id);
           console.log("ok");
         });
       },

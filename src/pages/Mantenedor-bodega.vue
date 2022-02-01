@@ -4,12 +4,23 @@
       <h3>Bodegas</h3>
     </div>
     <div class="row xs-12 md-9 justify-center">
-        <tabla :cols="cols" tittle="Listado de bodegas" />
-
+      <tabla :cols="cols" tittle="Listado de bodegas" />
     </div>
-      <div class="row justify-center q-mt-md">
-        <q-btn color="secondary" icon="las la-check" label="Agregar" @click.prevent="toggle" />
-      </div>
+    <div class="row justify-center q-mt-md">
+        <q-btn
+        color="secondary"
+        icon="las la-check"
+        label="Agregar"
+        @click.prevent="toggleAgregar"
+      />
+      <q-btn
+        color="accent"
+        icon="las la-paperclip"
+        label="Carga masiva"
+        @click.prevent="toggleMasivo"
+        class="q-mx-md"
+      />
+    </div>
   </q-page>
 </template>
 
@@ -17,13 +28,12 @@
 import { ref, provide, watchEffect } from "vue";
 import { api } from "src/boot/axios";
 import tabla from "../components/bodega/tablaBodegas.vue";
-import useOptionCategoria from "../hooks/useOptionCategoria";
 
 const cols = [
   {
     name: "uid",
     label: "uid",
-    field: "uid",
+    field: "id",
     align: "left",
   },
   {
@@ -32,7 +42,6 @@ const cols = [
     field: "nombre",
     align: "left",
     sortable: true,
-
   },
   {
     name: "estado",
@@ -45,6 +54,7 @@ const cols = [
     label: "Lugar",
     field: "local",
     align: "left",
+    sortable: true,
   },
   { name: "actions", label: "Actions", field: "", align: "right" },
 ];
@@ -54,51 +64,51 @@ export default {
     tabla,
   },
   data() {
+    const isVisibleAgregar = ref(false);
+    const isVisibleMasivo = ref(false);
 
+    provide("isVisibleAgregar", isVisibleAgregar);
+    provide("isVisibleMasivo", isVisibleMasivo);
+    const bodegasArray = ref([]);
 
-    
-    const isVisibleAgregar = ref(false)
-    provide("isVisibleAgregar", isVisibleAgregar)
-
-   const bodegasArray = ref([]);
-
-
-    const axiosGet = async (currentPage=0) => {
-      try {      
-        const options = {        
+    const axiosGet = async (currentPage = 0) => {
+      try {
+        const options = {
           headers: {
             "x-token": localStorage.token,
-          }, params: {
-          pageSize: 5,
-        },
-        
+          },
+          params: {
+            pageSize: 5,
+          },
         };
 
-        const res = await api.get("/bodegas",  options)
-        .then((r) => {
-          const { meta, rows } = r.data;
-          bodegasArray.value = rows;
-        })
-        .catch(e=>console.log(e.response));
+        const res = await api
+          .get("/bodegas", options)
+          .then((r) => {
+            const { meta, rows } = r.data;
+            bodegasArray.value = rows;
+          })
+          .catch((e) => console.log(e.response));
       } catch (error) {
         console.log("Error en get", error);
       }
     };
     axiosGet();
 
-  
-
     provide("bodegasArray", bodegasArray);
 
-
-  const toggle = ()=>{
-    isVisibleAgregar.value = !isVisibleAgregar.value
-  }
-    return {  
+     const toggleAgregar = () => {
+      isVisibleAgregar.value = !isVisibleAgregar.value;
+    };
+    const toggleMasivo = () => {
+      isVisibleMasivo.value = !isVisibleMasivo.value;
+    };
+    return {
       cols,
       bodegasArray,
       isVisibleAgregar,
-      toggle
+      toggleAgregar,
+      toggleMasivo,
     };
   },
 };

@@ -13,6 +13,10 @@ const routes = [
        meta: { requiresAuth: true, bodegaOnly: true } },
       { path: 'modelos', name:"modelos" ,component: () => import('pages/Mantenedor-modelos.vue'),
        meta: { requiresAuth: true, bodegaOnly: true } },
+      { path: 'productos', name:"productos" ,component: () => import('pages/Mantenedor-productos.vue'),
+       meta: { requiresAuth: true, bodegaOnly: true } },
+      { path: 'stecnico', name:"stecnico" ,component: () => import('pages/Servicio-tecnico.vue'),
+       meta: { requiresAuth: true, bodegaOnly: true } },
     ]
   },
 

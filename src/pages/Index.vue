@@ -1,80 +1,90 @@
 <template>
-  <q-page>
-    <div class="row" v-if="userDb">
-      <h4>Bienvenido: {{userDb.nombre}}</h4>
+  <q-page class="q-p2">
+    <div class="row justify-center">
+      <h3>Productos</h3>
     </div>
-    <div class="row md-9 justify-center">
-      <Suspense>
-        <tablaInventario :cols="cols" :rows="arrayData" tittle="Productos" />
-      </Suspense>
+    <div class="row xs-12 md-9 justify-center">
+      <tabla :cols="cols" tittle="Listado de productos" />
     </div>
-    <!-- <tabla-inventario :col="col" :row="row"/>    -->
   </q-page>
 </template>
 
 <script>
-import { useStore } from "vuex";
-import tablaInventario from "../components/categoria/tablaCategorias.vue";
-import { computed, ref } from "vue";
-import { api } from "boot/axios";
-
+import { ref, provide } from "vue";
+import { api } from "src/boot/axios";
+import tabla from "../components/inventario/tablaInventario.vue";
 
 const cols = [
   {
-    name:'uid',
-    label:'uid',
-    field:'uid',
-    align: 'left',
+    name: "Modelo",
+    label: "Modelo",
+    field: (row) => row.Modelo.nombre,
+    align: "left",
     sortable: true,
   },
   {
-    name:'modelo',
-    label:'Modelo',
-    field:row => row.modelo.nombre,
-    align: 'left',
+    name: "Bodega",
+    label: "Bodega",
+    field: (row) => row.Bodega.nombre,
+    align: "left",
     sortable: true,
+
   },
   {
-    name:'bodega',
-    label:'Bodega',
-    field:row => row.bodega.nombre,
-    align: 'left',
+    name: "Cantidad",
+    label: "Cantidad",
+    // field: (row) => row.Cantidad,
+    field: "Cantidad",
+    align: "right",
     sortable: true,
+
   },
-]
+];
 
 export default {
-  name: "PageIndex",
   components: {
-    tablaInventario,
+    tabla,
   },
-  setup(props) {
-    const store = useStore();
-    let userDb = computed(() => store.state.usuarioDB)
+  data() {
+    const isVisibleAgregar = ref(false);
+    provide("isVisibleAgregar", isVisibleAgregar);
 
-    const arrayData = ref([])
+    const inventarioArray = ref([]);
 
-    const axiosData = async()=>{
+    const axiosGet = async (currentPage = 1) => {
       try {
-        const res = await api.get("/productos/")
-        .then(response=>{
-          arrayData.value = response.data.productos
-        }).catch(e=>{
-          console.log(e)
-        })        
+        const options = {
+          headers: {
+            "x-token": localStorage.token,
+          },
+          params: {
+            pageSize: 5,
+            currentPage
+          },
+        };
 
+        const res = await api
+          .get("/productos/inventario", options)
+          .then((r) => {
+            const { meta, rows } = r.data;
+            inventarioArray.value = rows;
+          })
+          .catch((e) => console.log(e.response));
       } catch (error) {
-        console.log(error)        
+        console.log("Error en get", error);
       }
-    }
+    };
+    axiosGet();
 
-    axiosData()
+    provide("inventarioArray", inventarioArray);
+
 
     return {
-      userDb,
       cols,
-      arrayData
-    }
+      inventarioArray,
+      isVisibleAgregar,
+      
+    };
   },
 };
 </script>

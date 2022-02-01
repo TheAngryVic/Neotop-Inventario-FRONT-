@@ -4,18 +4,23 @@
       <h3>Categorias</h3>
     </div>
     <div class="row xs-12 md-9 justify-center">
-      <Suspense>
-        <!-- <tablaInventario :cols="cols" tittle="Categorias" :rows="arrayRef" /> -->
-        <tablaInventario :cols="cols" tittle="Categorias" />
-      </Suspense>
+      <tablaInventario :cols="cols" tittle="Categorias" />
     </div>
     <div class="row justify-center q-mt-md">
       <q-btn
         color="secondary"
         icon="las la-check"
         label="Agregar"
-        @click.prevent="toggle"
+        @click.prevent="toggleAgregar"
       />
+      <q-btn
+        color="accent"
+        icon="las la-paperclip"
+        label="Carga masiva"
+        @click.prevent="toggleMasivo"
+        class="q-mx-md"
+      />
+
     </div>
   </q-page>
 </template>
@@ -25,13 +30,14 @@ import { ref, provide, watchEffect } from "vue";
 import { api } from "src/boot/axios";
 import tablaInventario from "../components/categoria/tablaCategorias.vue";
 
+
+
 const cols = [
   {
     name: "uid",
     label: "uid",
-    field: "uid",
+    field: "id",
     align: "left",
-    sortable: true,
   },
   {
     name: "nombre",
@@ -45,14 +51,6 @@ const cols = [
     label: "Estado categoria",
     field: "estado",
     align: "left",
-    sortable: true,
-  },
-  {
-    name: "usuario",
-    label: "Usuario",
-    field: (row) => row.usuario.nombre,
-    align: "left",
-    sortable: true,
   },
   { name: "actions", label: "Actions", field: "", align: "right" },
 ];
@@ -62,9 +60,16 @@ export default {
     tablaInventario,
   },
   data() {
+    //Carga masiva
+
+    // 
     const isVisibleAgregar = ref(false);
+    const isVisibleMasivo = ref(false);
+  
 
     provide("isVisibleAgregar", isVisibleAgregar);
+    provide("isVisibleMasivo", isVisibleMasivo);
+  
 
     const arrayRef = ref([]);
     const axiosGet = async () => {
@@ -88,15 +93,26 @@ export default {
 
     provide("arrayRef", arrayRef);
 
-    const toggle = () => {
+    const toggleAgregar = () => {
       isVisibleAgregar.value = !isVisibleAgregar.value;
+    };
+    const toggleMasivo = () => {
+      isVisibleMasivo.value = !isVisibleMasivo.value;
     };
     return {
       cols,
       arrayRef,
       isVisibleAgregar,
-      toggle,
+      isVisibleMasivo,
+      toggleAgregar,
+      toggleMasivo,
+     
     };
+  },
+  methods: {
+    onValidate(results) {
+      results.value = results;
+    },
   },
 };
 </script>

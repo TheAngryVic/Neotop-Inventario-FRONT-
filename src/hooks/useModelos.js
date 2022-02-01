@@ -14,15 +14,16 @@ const useModelo = (objeto) => {
 
   const axiosPut = async () => {
     try {
+      console.log("object");
       let objeto2 ={
         nombre: objeto.nombre,
-        categoria: objeto.categoria._id,
+        categoria: objeto.Categorium.id,
         stock_minimo: objeto.stock_minimo,
       }
       const res = await api
-        .put(`modelos/${objeto.uid}`, objeto2, options)
+        .put(`modelos/${objeto.id}`, objeto2, options)
         .then((r) => {
-          console.log(r.data.msg);
+          console.log(r.status);
           if (r.status === 200) {
             $q.dialog({
               title: "Exito al actualizar",
@@ -42,7 +43,7 @@ const useModelo = (objeto) => {
           if (e.response.status === 400) {
             $q.dialog({
               title: "Alerta de repetidos",
-              message: e.response.data.errors[0].msg,
+              message: e.response.data.msg,
             });
           }
         });

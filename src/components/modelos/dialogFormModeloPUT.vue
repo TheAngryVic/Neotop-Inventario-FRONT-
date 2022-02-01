@@ -6,7 +6,7 @@
         <!-- <q-input filled v-model="modelo.categoria"   label="Categoria" /> -->
         <q-select
           filled
-          v-model="pObjeto.categoria._id"
+          v-model="pObjeto.Categorium.id"
           :options="categorias"
           label="Categoria"
           style="width: 250px"
@@ -31,8 +31,8 @@
         />
         <div>
           <q-btn
-            :disable="bloqued"
-            label="Agregar"
+            
+            label="Actualizar"
             class="full-width"
             type="submit"
             :color="colorButton"
@@ -64,7 +64,7 @@ export default {
       comboArray.forEach((e) => {
         let categoria = {
           label: e.nombre,
-          value: e.uid,
+          value: e.id,
         };
         categorias.value.push(categoria);
       });

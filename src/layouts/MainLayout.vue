@@ -98,7 +98,7 @@ const linksList = [
     title: "Servicio Tecnico",
     caption: "Ingresar a servicio técnico, consultar servicio técnico",
     icon: "las la-tools",
-    link: "home",
+    link: "stecnico",
   },
 ];
 

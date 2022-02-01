@@ -51,7 +51,7 @@ router.beforeEach((to, from, next) => {
 
       console.log("ROL", rol);
 
-      if(rol !== "BODEGA_ROLE") {
+      if(rol !== 2) {
 
          Dialog.create({
           title: 'Alerta de permisos',

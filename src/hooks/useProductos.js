@@ -2,7 +2,7 @@ import { api } from "src/boot/axios";
 import { useQuasar } from "quasar";
 import router from "../router/index";
 
-const useBodega = (objeto) => {
+const useProductos = (objeto) => {
   const $q = useQuasar();
 
   const options = {
@@ -14,9 +14,14 @@ const useBodega = (objeto) => {
 
   const axiosPut = async () => {
     try {
-      console.log(objeto.id);
+
+      let objeto2={
+        modelo:objeto.Modelo.id,
+        bodega:objeto.Bodega.id,
+        nSerie:objeto.nSerie
+      }
       const res = await api
-        .put(`bodegas/${objeto.id}`, objeto, options)
+        .put(`productos/${objeto.id}`, objeto2, options)
         .then((r) => {
           console.log(r.data.msg);
           if (r.status === 200) {
@@ -28,6 +33,7 @@ const useBodega = (objeto) => {
           }
         })
         .catch((e) => {
+          console.log(e.response);
           if (e.response.status === 401) {
             $q.dialog({
               title: "Alerta de permisos",
@@ -49,7 +55,7 @@ const useBodega = (objeto) => {
   const axiosDelete = async (id = "") => {
     try {
       const res = await api
-        .delete(`bodegas/${id}`, options)
+        .delete(`productos/${id}`, options)
         .then((r) => {
           console.log(r);
           if (r.status === 200) {
@@ -77,18 +83,19 @@ const useBodega = (objeto) => {
     let data;
     try {
       const res = await api
-        .post("bodegas", objeto.value, options)
-        .then((r) => {
-          if (r.status === 201) {
-            $q.dialog({
-              title: "Exito al agregar",
-              message: `${r.data.nombre} se ha agregado con exito`,
-            });
-
-            data = r.data;
-          }
-        })
-        .catch((e) => {
+      .post("productos", objeto.value, options)
+      .then((r) => {
+        console.log(r);
+        if (r.status === 201) {
+          $q.dialog({
+            title: "Exito al agregar",
+            message: r.data.msg,
+          });
+          
+          data = r.data;
+        }
+      })
+      .catch((e) => {
           console.log(e.response);
           if (e.response.status === 401) {
             $q.dialog({
@@ -117,4 +124,4 @@ const useBodega = (objeto) => {
   };
 };
 
-export default useBodega;
+export default useProductos;

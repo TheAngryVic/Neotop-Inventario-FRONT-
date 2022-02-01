@@ -15,7 +15,7 @@ const useCategoria = (objeto) => {
   const axiosPut = async () => {
     try {
       const res = await api
-        .put(`categorias/${objeto.uid}`, objeto, options)
+        .put(`categorias/${objeto.id}`, objeto, options)
         .then((r) => {
           console.log(r.data.msg);
           if (r.status === 200) {
@@ -37,7 +37,7 @@ const useCategoria = (objeto) => {
           if (e.response.status === 400) {
             $q.dialog({
               title: "Alerta de repetidos",
-              message: e.response.data.errors[0].msg,
+              message: e.response.data.msg,
             });
           }
         });

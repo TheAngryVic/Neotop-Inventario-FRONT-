@@ -62,12 +62,13 @@ export default defineComponent({
   name: "Login",
   data(){
     return{
-      usuario:{ correo:'test@test.com', password:'123456'}
+      usuario:{ correo:'usuario2@test.com', password:'123456'}
     }
   },
   methods:{
     ...mapActions(['guardarUsuario']),
     login(){
+      const $q = useQuasar()
       console.log(this.usuario)
       api.post('/auth/login', this.usuario)
       .then(res=>{
@@ -77,7 +78,13 @@ export default defineComponent({
       })
       .catch(e=>{
         if (e.response) {
-          console.log(e.response)          
+          console.log(e.response)
+          if (e.response.status==400) {
+              $q.dialog({
+                title:"Error",
+                msg:e.response.data.msg
+              })
+          }      
         }
 
       })

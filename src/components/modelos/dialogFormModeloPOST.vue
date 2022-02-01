@@ -52,7 +52,6 @@
 
 <script>
 import useModelos from "../../hooks/useModelos";
-import useOptionCategoria from "../../hooks/useOptionCategoria";
 import { ref, inject, computed } from "vue";
 
 export default {
@@ -67,7 +66,7 @@ export default {
 
             let categoria = {
                 label: e.nombre,
-                value: e.uid
+                value: e.id
             }
             categorias.value.push(categoria)            
         });
